@@ -17,3 +17,57 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --font-sans: system-ui, -apple-system, sans-serif;
 }
+
+.tab-bar {
+  height: 38px;          /* Tighter header for better alignment */
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-panel);
+  border-bottom: 1px solid var(--color-border);
+  position: fixed;       /* Pin to top of window */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  -webkit-app-region: drag;
+  padding-right: 8px;
+}
+
+/* Buttons inside the drag region must be explicitly non-draggable */
+.tab-bar button,
+.tab-bar input,
+.tab-bar a,
+.tab {
+  -webkit-app-region: no-drag;
+}
+
+/* Push all content below the fixed tab bar */
+.app-container {
+  margin-top: 38px;
+  height: calc(100vh - 38px);
+}
+
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  margin-left: auto;
+  -webkit-app-region: no-drag;
+}
+
+.wc-btn {
+  width: 46px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease-out;
+}
+
+.wc-btn:hover { background: var(--color-bg-elevated); }
+.wc-close:hover { background: var(--color-text-danger); color: white; }

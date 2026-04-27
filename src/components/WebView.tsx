@@ -13,13 +13,18 @@ export const WebView: Component = () => {
 
   const updateBounds = () => {
     if (containerRef) {
-      const rect = containerRef.getBoundingClientRect();
-      invoke('update_tab_bounds', {
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-      }).catch(console.error);
+      requestAnimationFrame(() => {
+        if (!containerRef) return;
+        const rect = containerRef.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        
+        invoke('update_tab_bounds', {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+        }).catch(console.error);
+      });
     }
   };
 

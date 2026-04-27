@@ -15,6 +15,7 @@ pub struct Tab {
     pub id: Uuid,
     pub url: String,
     pub title: String,
+    pub favicon: Option<String>,
     pub is_background: bool,
     pub created_at: DateTime<Utc>,
     pub fallback_mode: bool,
@@ -53,6 +54,7 @@ impl BrowserService {
             id,
             url: url.clone(),
             title: "New Tab".to_string(),
+            favicon: None,
             is_background,
             created_at: Utc::now(),
             fallback_mode: false,
@@ -79,10 +81,26 @@ impl BrowserService {
             let builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed_url))
                 .user_agent(CHROME_USER_AGENT)
                 .initialization_script(init_script)
-                .on_page_load(move |_webview, _payload| {
+                .on_page_load(move |webview, _payload| {
                     let mut state = state_clone.write();
                     if let Some(t) = state.tabs.iter_mut().find(|t| t.id == id_clone) {
                         t.loaded = true;
+                        
+                        let webview_clone = webview.clone();
+                        tauri::async_runtime::spawn(async move {
+                            tokio::time::sleep(Duration::from_millis(1000)).await;
+                            let js = format!(r#"
+                                (function() {{
+                                    const data = {{
+                                        id: '{}',
+                                        title: document.title,
+                                        favicon: document.querySelector('link[rel~="icon"]')?.href || ""
+                                    }};
+                                    window.__TAURI__.event.emit('tab-metadata', data);
+                                }})()
+                            "#, id_clone);
+                            let _ = webview_clone.eval(&js);
+                        });
                     }
                 });
 
@@ -274,6 +292,19 @@ impl BrowserService {
     pub fn reload(&self, app: &AppHandle, id: Uuid) -> Result<(), VibError> {
         if let Some(w) = app.get_webview(&format!("tab-{}", id)) {
             let _ = w.eval("window.location.reload()");
+        }
+        Ok(())
+    }
+
+    pub fn update_metadata(&self, id: Uuid, title: String, favicon: String) -> Result<(), VibError> {
+        let mut state = self.state.write();
+        if let Some(t) = state.tabs.iter_mut().find(|t| t.id == id) {
+            if !title.is_empty() {
+                t.title = title;
+            }
+            if !favicon.is_empty() {
+                t.favicon = Some(favicon);
+            }
         }
         Ok(())
     }
