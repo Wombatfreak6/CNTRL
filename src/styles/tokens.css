@@ -1,0 +1,19 @@
+/* 
+  Tokens for the mecha-industrial design system 
+  Full definitions will be added in Phase 7
+*/
+:root {
+  --color-bg-base: #0e0e0e;
+  --color-bg-panel: #161616;
+  --color-bg-elevated: #1f1f1f;
+  --color-border: #2a2a2a;
+  --color-border-active: #3d3d3d;
+  --color-accent: #e8a020;
+  --color-accent-dim: #7a5210;
+  --color-text-primary: #e8e6e0;
+  --color-text-secondary: #888480;
+  --color-text-danger: #e05555;
+  --color-text-success: #55a855;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: system-ui, -apple-system, sans-serif;
+}
