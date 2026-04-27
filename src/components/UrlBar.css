@@ -1,0 +1,40 @@
+.url-bar-container {
+  display: flex;
+  padding: 8px 16px;
+  background-color: var(--color-bg-base);
+  border-bottom: 0.5px solid var(--color-border);
+}
+
+.url-bar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background-color: var(--color-bg-panel);
+  border: 0.5px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0 8px;
+  height: 32px;
+}
+
+.url-bar:focus-within {
+  border-color: var(--color-accent);
+}
+
+.icon {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.url-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+}
+
+.url-input::placeholder {
+  color: var(--color-text-secondary);
+}
