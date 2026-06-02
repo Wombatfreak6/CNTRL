@@ -1,6 +1,6 @@
-# Contributing to Vibe Browser
+# Contributing to CNTRL Browser
 
-Thanks for your interest in Vibe Browser. This project is early, experimental, and security-sensitive because it combines web browsing, embedded webviews, and AI model integrations. Contributions are welcome, but changes should be scoped, tested, and easy to review.
+Thanks for your interest in CNTRL Browser. This project is early, experimental, and security-sensitive because it combines web browsing, embedded webviews, and AI model integrations. Contributions are welcome, but changes should be scoped, tested, and easy to review.
 
 ## Development Setup
 
