@@ -1,6 +1,6 @@
 # Security Policy
 
-Vibe Browser is an experimental desktop browser and AI-assisted browsing project. Treat all browser, webview, fallback rendering, credentials, model-provider, and automation code as security-sensitive.
+CNTRL Browser is an experimental desktop browser and AI-assisted browsing project. Treat all browser, webview, fallback rendering, credentials, model-provider, and automation code as security-sensitive.
 
 ## Supported Versions
 
@@ -71,6 +71,6 @@ Reports are in scope when they affect:
 
 Reports are out of scope when they only affect:
 
-- Third-party sites loaded inside the browser, unless Vibe Browser makes the issue worse.
+- Third-party sites loaded inside the browser, unless CNTRL Browser makes the issue worse.
 - Provider-side behavior in OpenRouter, Ollama, Hugging Face, or other external APIs.
 - Social engineering against maintainers.
