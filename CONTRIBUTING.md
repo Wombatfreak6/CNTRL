@@ -1,114 +1,61 @@
 # Contributing to CNTRL Browser
 
-Thanks for your interest in CNTRL Browser. This project is early, experimental, and security-sensitive because it combines web browsing, embedded webviews, and AI model integrations. Contributions are welcome, but changes should be scoped, tested, and easy to review.
+Thank you for your interest in contributing to CNTRL Browser! We welcome community contributions to help build a lightweight, intent-based autonomous browser.
 
-## Development Setup
+## Getting Started
 
-Install dependencies:
+### Prerequisites
+To build and run CNTRL Browser locally, you will need:
+- **Node.js**: Version 20 or higher.
+- **Rust**: The stable Rust toolchain (including cargo, rustc, and rustfmt).
+- **Tauri Prerequisites**: Setup instructions for Tauri v2 dependencies vary by operating system. Please follow the official [Tauri Prerequisite Guide](https://v2.tauri.app/start/prerequisites/).
 
+### Local Setup
+
+1. Fork and clone the repository:
+   ```bash
+   git clone https://github.com/<your-username>/CNTRL-Browser.git
+   cd CNTRL-Browser
+   ```
+2. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server (this starts Vite and launches the Tauri app):
+   ```bash
+   npm run tauri dev
+   ```
+
+## Development Guidelines
+
+### Code Style & Quality
+To keep the codebase clean and maintainable, we use automated formatters and linters:
+- **Frontend**: Biome and ESLint are used for formatting and linting.
+- **Backend (Rust)**: `cargo fmt` and `cargo clippy` are used.
+
+Before committing, run:
 ```bash
-npm install
-```
-
-Run the desktop app:
-
-```bash
-npm run tauri dev
-```
-
-Run the frontend dev server only:
-
-```bash
-npm run dev
-```
-
-Run frontend tests:
-
-```bash
+# Frontend
+npx tsc --noEmit
+npx eslint . --max-warnings 0
 npx vitest run
-```
 
-Run Rust tests:
-
-```bash
+# Backend (Rust)
 cd src-tauri
-cargo test
+cargo fmt --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test --all
 ```
 
-Format code:
+### Commit Messages
+We follow the **Conventional Commits** specification. Please format your commit messages accordingly:
+- `feat: add intent scoring logic`
+- `fix: correct tab bound update logic`
+- `docs: update setup steps in readme`
 
-```bash
-npx biome format . --write
-```
-
-## Branching
-
-Use short, descriptive branch names:
-
-```text
-feature/command-bar
-fix/fallback-timeout
-docs/open-source-readme
-security/csp-hardening
-```
-
-## Commit Style
-
-Use conventional commits:
-
-```text
-feat: add command bar shell
-fix: hide inactive child webviews
-docs: document tauri prerequisites
-test: add ai router tier scoring tests
-chore: update tooling config
-```
-
-## Pull Request Guidelines
-
-Before opening a pull request:
-
-- Keep the scope focused.
-- Include a clear summary of behavior changes.
-- Add or update tests for browser behavior, AI routing, or security-sensitive code.
-- Mention any manual testing performed.
-- Avoid committing generated app data, API keys, screenshots with private data, or local build artifacts.
-
-For UI changes, include:
-
-- What changed visually.
-- Which browser states were checked.
-- Any accessibility considerations.
-
-For Tauri or Rust backend changes, include:
-
-- Which commands or services changed.
-- Whether capabilities or permissions changed.
-- How errors are surfaced to the frontend.
-
-For AI-provider changes, include:
-
-- Which provider or API endpoint changed.
-- How credentials are stored or read.
-- Failure behavior when provider calls fail.
-
-## Code Style
-
-- Prefer SolidJS primitives and `solid-js/store` for frontend state.
-- Keep Tauri commands thin; place business logic in Rust services.
-- Return clear errors from backend commands.
-- Avoid broad capability permissions unless a feature requires them.
-- Keep docs aligned with actual implementation status.
-
-## Security Expectations
-
-Do not open public pull requests that include:
-
-- API keys.
-- Local app data.
-- OAuth tokens.
-- Browser cookies.
-- User browsing history.
-- Credentials or private model-provider configuration.
-
-Security fixes should be handled carefully. See [SECURITY.md](SECURITY.md).
+### Pull Request Process
+1. Create a branch for your feature or fix (e.g., `feature/xyz` or `fix/abc`).
+2. Add tests for your code if applicable.
+3. Verify that all frontend and backend checks pass locally.
+4. Push your branch and open a Pull Request against the `main` branch.
+5. Provide a clear description of the problem solved and the implementation details in your PR description.

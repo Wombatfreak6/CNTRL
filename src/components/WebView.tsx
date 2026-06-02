@@ -8,18 +8,24 @@ export const WebView: Component = () => {
   const [htmlContent, setHtmlContent] = createSignal('');
   const [isLoading, setIsLoading] = createSignal(false);
   const [error, setError] = createSignal('');
+  // eslint-disable-next-line no-unassigned-vars
   let containerRef: HTMLDivElement | undefined;
   let resizeObserver: ResizeObserver | undefined;
 
   const updateBounds = () => {
     if (containerRef) {
-      const rect = containerRef.getBoundingClientRect();
-      invoke('update_tab_bounds', {
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-      }).catch(console.error);
+      requestAnimationFrame(() => {
+        if (!containerRef) return;
+        const rect = containerRef.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        
+        invoke('update_tab_bounds', {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+        }).catch(console.error);
+      });
     }
   };
 
@@ -68,9 +74,9 @@ export const WebView: Component = () => {
 
   return (
     <div class="webview-container" ref={containerRef}>
-      {activeTab()?.url === 'vibe://settings' && <SettingsPage />}
+      {activeTab()?.url === 'cntrl://settings' && <SettingsPage />}
       
-      {activeTab()?.fallback_mode && activeTab()?.url !== 'vibe://settings' && (
+      {activeTab()?.fallback_mode && activeTab()?.url !== 'cntrl://settings' && (
         <>
           {isLoading() && <div class="loading">Loading compatibility mode...</div>}
           {error() && <div class="error">{error()}</div>}
@@ -85,7 +91,7 @@ export const WebView: Component = () => {
       )}
       {!activeTab()?.fallback_mode && !activeTab() && (
         <div class="empty-state">
-          <h1>VIBE BROWSER</h1>
+          <h1>CNTRL BROWSER</h1>
           <p>Intent-based autonomous browsing</p>
         </div>
       )}

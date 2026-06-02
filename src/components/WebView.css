@@ -27,19 +27,22 @@
 }
 
 .empty-state {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   text-align: center;
   font-family: var(--font-sans);
+  padding: 20px;
 }
 
 .empty-state h1 {
   color: var(--color-accent);
-  font-size: 24px;
-  letter-spacing: 2px;
-  margin-bottom: 8px;
+  font-size: clamp(24px, 5vw, 48px);
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+  font-weight: 800;
 }
 
 .empty-state p {

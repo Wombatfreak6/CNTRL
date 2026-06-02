@@ -1,41 +1,53 @@
-.tab-bar {
-  display: flex;
-  background-color: var(--color-bg-panel);
-  border-bottom: 0.5px solid var(--color-border);
-  height: 36px;
-  align-items: center;
-  padding: 0 8px;
-  overflow-x: auto;
-}
+/* .tab-bar and .window-controls-spacer are now handled in tokens.css and TabBar.tsx */
 
 .tab {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 10px;
   height: 28px;
-  min-width: 120px;
+  flex: 1 1 0;
+  min-width: 40px;
   max-width: 200px;
   border: 0.5px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: 6px;
   margin-right: 4px;
   background-color: var(--color-bg-base);
   color: var(--color-text-secondary);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: all 0.2s ease;
 }
 
 .tab.active {
   color: var(--color-text-primary);
   border-color: var(--color-border-active);
   background-color: var(--color-bg-elevated);
+  flex: 1 1 160px; /* Active tab stays larger if possible */
+}
+
+.tab-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.favicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .tab .title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .tab .close-btn {
@@ -54,8 +66,18 @@
 .new-tab-btn {
   background: none;
   border: none;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  padding: 0 8px;
-  font-size: 18px;
+  padding: 0 10px;
+  font-size: 22px;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.new-tab-btn:hover {
+  color: var(--color-text-primary);
 }

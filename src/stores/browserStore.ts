@@ -5,6 +5,7 @@ export interface Tab {
   id: string;
   url: string;
   title: string;
+  favicon?: string;
   is_background: boolean;
   created_at: string;
   fallback_mode: boolean;
@@ -25,7 +26,7 @@ export const browserActions = {
     const tabs: Tab[] = await invoke('get_tabs');
     setBrowserState('tabs', tabs);
     if (!browserState.activeTabId && tabs.length > 0) {
-      setBrowserState('activeTabId', tabs[0].id);
+      setBrowserState('activeTabId', tabs[0]?.id || null);
     }
   },
 
