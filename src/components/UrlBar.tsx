@@ -41,10 +41,14 @@ export const UrlBar: Component = () => {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
-      let url = inputUrl();
+      let url = inputUrl().trim();
+      if (!url) return;
+
       if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('cntrl://')) {
         url = `https://${url}`;
       }
+
+      setInputUrl(url);
       
       if (browserState.activeTabId) {
         browserActions.navigate(browserState.activeTabId, url);
