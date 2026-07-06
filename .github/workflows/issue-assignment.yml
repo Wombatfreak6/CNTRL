@@ -9,7 +9,7 @@ permissions:
 jobs:
   auto-assign:
     # Only run if the issue is not a PR and the comment contains '/assign'
-    if: (!context.payload.issue.pull_request) && contains(context.payload.comment.body, '/assign')
+    if: (!github.event.issue.pull_request) && contains(github.event.comment.body, '/assign')
     runs-on: ubuntu-latest
     steps:
       - name: Process Assignment Request
