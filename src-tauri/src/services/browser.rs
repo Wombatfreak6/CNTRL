@@ -28,9 +28,7 @@ pub struct BrowserConfig {
 
 impl Default for BrowserConfig {
     fn default() -> Self {
-        Self {
-            user_agent: None,
-        }
+        Self { user_agent: None }
     }
 }
 #[derive(Default)]
@@ -103,7 +101,7 @@ impl BrowserService {
                     .user_agent
                     .clone()
                     .unwrap_or_else(|| CHROME_USER_AGENT.to_string())
-     };
+            };
             let builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed_url))
                 .user_agent(&user_agent)
                 .initialization_script(init_script)
@@ -360,12 +358,12 @@ impl BrowserService {
         Ok(())
     }
     pub fn get_browser_config(&self) -> BrowserConfig {
-    self.config.read().clone()
+        self.config.read().clone()
     }
 
     pub fn update_browser_config(&self, config: BrowserConfig) {
-    *self.config.write() = config;
-  }
+        *self.config.write() = config;
+    }
     pub fn update_metadata(
         &self,
         id: Uuid,
