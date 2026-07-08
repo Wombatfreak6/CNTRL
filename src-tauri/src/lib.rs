@@ -62,6 +62,8 @@ pub fn run() {
             commands::browser::go_back,
             commands::browser::go_forward,
             commands::browser::reload,
+            commands::browser::get_browser_config,
+            commands::browser::update_browser_config,
             commands::ai::ask_ai,
             commands::ai::get_ai_config,
             commands::ai::update_ai_config,
