@@ -11,7 +11,9 @@ export interface Tab {
   fallback_mode: boolean;
   loaded: boolean;
 }
-
+export interface BrowserConfig {
+  user_agent: string | null;
+}
 export const [browserState, setBrowserState] = createStore({
   tabs: [] as Tab[],
   activeTabId: null as string | null,
@@ -91,5 +93,12 @@ export const browserActions = {
 
   async reload(id: string) {
     await invoke("reload", { id });
+  },
+  async getBrowserConfig() {
+    return await invoke<BrowserConfig>("get_browser_config");
+  },
+
+  async updateBrowserConfig(config: BrowserConfig) {
+    await invoke("update_browser_config", { config });
   },
 };

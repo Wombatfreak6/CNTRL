@@ -9,7 +9,7 @@ import {
   updateAiConfig,
 } from "../stores/aiStore";
 import "./SettingsPage.css";
-
+import { browserActions } from "../stores/browserStore";
 const IconBot = () => (
   <svg
     width="16"
@@ -200,6 +200,8 @@ export const SettingsPage: Component = () => {
   const [isScoring, setIsScoring] = createSignal(false);
 
   const [showKey, setShowKey] = createSignal(false);
+  const [userAgent, setUserAgent] = createSignal("");
+  const [isLoadingBrowserConfig, setIsLoadingBrowserConfig] = createSignal(true);
   const [copied, setCopied] = createSignal(false);
 
   onMount(() => {
@@ -207,6 +209,10 @@ export const SettingsPage: Component = () => {
     setOpenRouterKey(aiState.openrouter_key || "");
     setOllamaUrl(aiState.ollama_url);
     setSelectedModel(aiState.selected_model);
+    browserActions.getBrowserConfig().then((config) => {
+      setUserAgent(config.user_agent ?? "");
+      setIsLoadingBrowserConfig(false);
+    });
   });
 
   createEffect(() => {
@@ -245,6 +251,9 @@ export const SettingsPage: Component = () => {
       openrouter_key: openRouterKey() || null,
       ollama_url: ollamaUrl(),
       selected_model: selectedModel(),
+    });
+    await browserActions.updateBrowserConfig({
+      user_agent: userAgent() || null,
     });
     setSaveStatus("saved");
     setTimeout(() => setSaveStatus("idle"), 2500);
@@ -422,6 +431,34 @@ export const SettingsPage: Component = () => {
                 />
               </div>
             </Show>
+          </section>
+          <section class="sp-card">
+            <div class="sp-card-header">
+              <span class="sp-card-icon">
+                <IconKey />
+              </span>
+              <h2 class="sp-card-title">Advanced Settings</h2>
+            </div>
+
+            <div class="sp-field">
+              <label class="sp-label" for="sp-user-agent">
+                User Agent
+              </label>
+
+              <input
+                id="sp-user-agent"
+                class="sp-input"
+                type="text"
+                placeholder="Leave empty to use default Chrome User Agent"
+                value={userAgent()}
+                disabled={isLoadingBrowserConfig()}
+                onInput={(e) => setUserAgent(e.currentTarget.value)}
+              />
+
+              <small class="sp-description">
+                This User Agent will be applied to newly opened browser tabs.
+              </small>
+            </div>
           </section>
 
           <Show when={tier() === "Freemium" || tier() === "Premium"}>
