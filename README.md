@@ -14,13 +14,52 @@ CNTRL Browser is a lightweight, AI-driven autonomous browser built with Tauri (R
   - Tier 3 (Precision): OpenAI-compatible endpoints (Claude, GPT-4o, etc.)
 
 ## 7-Phase Build Plan
-- [x] **Phase 1**: Project Scaffold & CI Pipeline
-- [x] **Phase 2**: Webview Engine & Browser Chrome (Native fallback architecture)
-- [x] **Phase 3**: Hybrid Brain & Model Router (Ollama/OpenRouter/HF integration)
-- [ ] **Phase 4**: Intent Layer & Command Bar (Natural Language Actions)
-- [ ] **Phase 5**: Memory Engine & Security Layer
-- [ ] **Phase 6**: Background Agents & Macro Recorder
-- [ ] **Phase 7**: Design System, Plugin SDK & OSS Release
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| **Phase 1** | Project Scaffold & CI Pipeline | ✅ Complete |
+| **Phase 2** | Webview Engine & Browser Chrome | ✅ Complete |
+| **Phase 3** | Hybrid Brain & Model Router | ✅ Complete |
+| **Phase 4** | Intent Layer & Command Bar | 🔲 Not started |
+| **Phase 5** | Memory Engine & Security Layer | 🔲 Not started |
+| **Phase 6** | Background Agents & Macro Recorder | 🔲 Not started |
+| **Phase 7** | Design System, Plugin SDK & OSS Release | 🔲 Not started |
+
+### Phase 1 — Project Scaffold & CI Pipeline
+Tauri v2 + SolidJS + TypeScript monorepo. Full CI pipeline: Clippy, rustfmt,
+`cargo test`, `tsc --noEmit`, ESLint, Vitest. Global error types via `thiserror`.
+Biome formatter. Strict TypeScript with `noUncheckedIndexedAccess` and
+`exactOptionalPropertyTypes`.
+
+### Phase 2 — Webview Engine & Browser Chrome
+Native OS webview per tab. `BrowserService` managing tab lifecycle (open, close,
+navigate, back, forward, reload). Tab bar with Cmd+T / Cmd+W / Cmd+Shift+T.
+URL bar with HTTPS lock icon and HTTP warning indicator. Playwright-based
+headless fallback for WebKit-hostile sites, rendered in a sandboxed iframe.
+
+### Phase 3 — Hybrid Brain & Model Router
+Trait-based provider system with per-provider files under `services/ai/`.
+Tier 1 (Ollama), Tier 2 (Gemini, Groq, HuggingFace, OpenRouter), Tier 3
+(generic OpenAI-compatible). Complexity scorer (0–10 int → tier mapping).
+All API keys stored in the OS keychain — zero plaintext secrets on disk.
+Settings UI with per-provider health indicators. OpenRouter free-model filter.
+HuggingFace model list and inference.
+
+### Phase 4 — Intent Layer & Command Bar *(planned)*
+Natural language command classification into 7 intent types. Multi-step task
+planner and executor. Cmd+K command bar overlay with live step feed.
+
+### Phase 5 — Memory Engine & Security Layer *(planned)*
+SQLite via `sqlx` for task history and habits. LanceDB semantic recall.
+OS keychain audit log. Privacy mode blocking remote AI calls.
+
+### Phase 6 — Background Agents & Macro Recorder *(planned)*
+Tokio background job queue. `.vibe` macro file format. Cron scheduling.
+OS notifications. Import/export and visual schedule picker.
+
+### Phase 7 — Design System, Plugin SDK & OSS Release *(planned)*
+Full Mecha-Industrial design token application. Light mode toggle. WASM
+plugin sandbox. OSS documentation, example macros, release pipeline.
 
 ## Running the project locally
 
