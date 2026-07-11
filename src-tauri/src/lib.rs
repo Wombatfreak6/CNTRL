@@ -109,6 +109,8 @@ pub fn run() {
             commands::ai::get_hf_models,
             commands::ai::get_openrouter_free_models,
             commands::ai::test_intent_router,
+            // Intent commands
+            commands::intent::submit_intent,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
