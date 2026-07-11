@@ -20,7 +20,7 @@ CNTRL Browser is a lightweight, AI-driven autonomous browser built with Tauri (R
 | **Phase 1** | Project Scaffold & CI Pipeline | ✅ Complete |
 | **Phase 2** | Webview Engine & Browser Chrome | ✅ Complete |
 | **Phase 3** | Hybrid Brain & Model Router | ✅ Complete |
-| **Phase 4** | Intent Layer & Command Bar | 🔲 Not started |
+| **Phase 4** | Intent Layer & Command Bar | ✅ Complete |
 | **Phase 5** | Memory Engine & Security Layer | 🔲 Not started |
 | **Phase 6** | Background Agents & Macro Recorder | 🔲 Not started |
 | **Phase 7** | Design System, Plugin SDK & OSS Release | 🔲 Not started |
@@ -45,7 +45,7 @@ All API keys stored in the OS keychain — zero plaintext secrets on disk.
 Settings UI with per-provider health indicators. OpenRouter free-model filter.
 HuggingFace model list and inference.
 
-### Phase 4 — Intent Layer & Command Bar *(planned)*
+### Phase 4 — Intent Layer & Command Bar
 Natural language command classification into 7 intent types. Multi-step task
 planner and executor. Cmd+K command bar overlay with live step feed.
 
