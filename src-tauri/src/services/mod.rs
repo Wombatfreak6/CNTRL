@@ -10,3 +10,6 @@ pub mod ai;
 pub mod browser;
 pub mod fallback;
 pub mod keychain;
+pub mod intent;
+pub mod planner;
+pub mod executor;

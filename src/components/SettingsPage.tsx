@@ -129,7 +129,7 @@ export const SettingsPage: Component = () => {
   const [isScoring, setIsScoring] = createSignal(false);
 
   const [userAgent, setUserAgent] = createSignal("");
-  const [isLoadingBrowserConfig, setIsLoadingBrowserConfig] = createSignal(true);
+  const [isLoadingBrowserConfig] = createSignal(true);
 
   // ── Model lists ────────────────────────────────────────────────────────
   const [hfModels, setHfModels] = createSignal<string[]>([]);
