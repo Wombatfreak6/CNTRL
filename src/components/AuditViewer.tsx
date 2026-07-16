@@ -1,12 +1,6 @@
-/**
- * @module components/AuditViewer
- * Audit log viewer showing both AI calls and credential accesses.
- */
-
 import { Component, createSignal, onMount, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import "./AuditViewer.css";
-
 interface AuditEntry {
   id: string;
   entry_type: string;
@@ -21,7 +15,6 @@ interface AuditEntry {
   access_type: string | null;
   created_at: string;
 }
-
 export const AuditViewer: Component = () => {
   const [entries, setEntries] = createSignal<AuditEntry[]>([]);
   const [searchQuery, setSearchQuery] = createSignal("");
@@ -29,11 +22,9 @@ export const AuditViewer: Component = () => {
   const [currentPage, setCurrentPage] = createSignal(1);
   const [itemsPerPage] = createSignal(10);
   const [isLoading, setIsLoading] = createSignal(false);
-
   const fetchLog = async () => {
     setIsLoading(true);
     try {
-      // Query up to 500 recent entries for client-side search and filtering
       const result = await invoke<AuditEntry[]>("get_recent_audit_log", { limit: 500 });
       setEntries(result);
     } catch (err) {
@@ -42,28 +33,22 @@ export const AuditViewer: Component = () => {
       setIsLoading(false);
     }
   };
-
   onMount(() => {
     void fetchLog();
   });
-
   const filteredEntries = () => {
     return entries().filter((entry) => {
-      // 1. Filter by type
+      
       if (filterType() === "ai" && entry.entry_type !== "ai_call") return false;
       if (filterType() === "credential" && entry.entry_type !== "credential_access") return false;
-
-      // 2. Filter by search query
       const query = searchQuery().toLowerCase().trim();
       if (!query) return true;
-
       const intentMatch = entry.intent?.toLowerCase().includes(query) ?? false;
       const providerMatch = entry.provider_name?.toLowerCase().includes(query) ?? false;
       const keyMatch = entry.credential_key?.toLowerCase().includes(query) ?? false;
       const serviceMatch = entry.credential_service?.toLowerCase().includes(query) ?? false;
       const tierMatch = entry.tier_used?.toLowerCase().includes(query) ?? false;
       const typeMatch = entry.access_type?.toLowerCase().includes(query) ?? false;
-
       return (
         intentMatch ||
         providerMatch ||
@@ -75,29 +60,24 @@ export const AuditViewer: Component = () => {
       );
     });
   };
-
   const paginatedEntries = () => {
     const start = (currentPage() - 1) * itemsPerPage();
     const end = start + itemsPerPage();
     return filteredEntries().slice(start, end);
   };
-
   const totalPages = () => {
     return Math.max(1, Math.ceil(filteredEntries().length / itemsPerPage()));
   };
-
   const handlePrevPage = () => {
     if (currentPage() > 1) {
       setCurrentPage(currentPage() - 1);
     }
   };
-
   const handleNextPage = () => {
     if (currentPage() < totalPages()) {
       setCurrentPage(currentPage() + 1);
     }
   };
-
   const formatDate = (isoStr: string) => {
     try {
       const d = new Date(isoStr);
@@ -106,7 +86,6 @@ export const AuditViewer: Component = () => {
       return isoStr;
     }
   };
-
   return (
     <div class="audit-viewer">
       <div class="audit-controls">
@@ -155,7 +134,6 @@ export const AuditViewer: Component = () => {
           </button>
         </div>
       </div>
-
       <div class="audit-table-wrapper">
         <table class="audit-table">
           <thead>
@@ -221,7 +199,6 @@ export const AuditViewer: Component = () => {
           </tbody>
         </table>
       </div>
-
       <div class="audit-pagination">
         <span class="audit-pagination-info">
           Showing page {currentPage()} of {totalPages()} ({filteredEntries().length} total entries)

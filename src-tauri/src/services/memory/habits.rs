@@ -1,37 +1,17 @@
-//! Site-habits tracker — learns which services the user prefers for each intent.
-//!
-//! Every time a task completes successfully, [`record_outcome`] is called to
-//! increment the use-count for the `(intent_type, keyword, service)` triple.
-//! [`find_preferred_service`] returns the most-used service for a given keyword,
-//! which the planner can use to pre-select a destination.
-
 use chrono::Utc;
 use uuid::Uuid;
 
 use super::db::AppDb;
 use crate::error::CntrlError;
 
-/// A single site-habit entry returned from the database.
 #[derive(Debug, Clone)]
 pub struct SiteHabit {
-    /// The intent classification this habit belongs to (e.g. `"navigate"`).
     pub intent_type: String,
-    /// The keyword that triggered the intent (e.g. `"lo-fi"`).
     pub keyword: String,
-    /// The preferred service domain (e.g. `"youtube.com"`).
     pub preferred_service: String,
-    /// How many times this combination has been used.
     pub use_count: i64,
 }
 
-/// Records that a task with `intent_type` and `keyword` resolved to `service`.
-///
-/// If the `(intent_type, keyword, service)` triple already exists its
-/// `use_count` is incremented and `last_used_at` is updated. Otherwise a new
-/// row is inserted.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn record_outcome(
     db: &AppDb,
     intent_type: &str,
@@ -40,7 +20,6 @@ pub async fn record_outcome(
 ) -> Result<(), CntrlError> {
     let now = Utc::now().to_rfc3339();
 
-    // Attempt an upsert: increment count if exists, insert otherwise.
     let existing: Option<(String,)> = sqlx::query_as(
         "SELECT id FROM site_habits WHERE intent_type = ? AND keyword = ? AND preferred_service = ?",
     )
@@ -76,11 +55,6 @@ pub async fn record_outcome(
     Ok(())
 }
 
-/// Returns the most-used preferred service for the given `keyword`, across all
-/// intent types, or `None` if no habit has been recorded yet.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn find_preferred_service(
     db: &AppDb,
     keyword: &str,
@@ -106,10 +80,6 @@ pub async fn find_preferred_service(
     ))
 }
 
-/// Returns all recorded habits, ordered by most-used first.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn list_habits(db: &AppDb) -> Result<Vec<SiteHabit>, CntrlError> {
     let rows: Vec<(String, String, String, i64)> = sqlx::query_as(
         "SELECT intent_type, keyword, preferred_service, use_count
@@ -131,10 +101,6 @@ pub async fn list_habits(db: &AppDb) -> Result<Vec<SiteHabit>, CntrlError> {
         )
         .collect())
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tests
-// ─────────────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -180,7 +146,6 @@ mod tests {
     async fn most_used_wins_when_multiple_services() {
         let db = open_in_memory().await.expect("DB must open");
 
-        // youtube used 3 times, soundcloud only once
         for _ in 0..3 {
             record_outcome(&db, "navigate", "jazz", "youtube.com")
                 .await

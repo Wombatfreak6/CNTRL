@@ -1,61 +1,25 @@
-//! Audit log — append-only record of every AI call and credential access.
-//!
-//! All entries are written to the `audit_log` SQLite table. The table is
-//! append-only: no rows are ever deleted or updated. A read-only view is
-//! exposed to the Settings > Privacy UI.
-//!
-//! **Security note**: this module deliberately stores only metadata about
-//! credential accesses (which key was read/written/deleted) — never the
-//! credential value itself.
-
 use chrono::Utc;
 use uuid::Uuid;
 
 use crate::error::CntrlError;
 use crate::services::memory::db::AppDb;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// A single entry in the audit log.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct AuditEntry {
-    /// Unique identifier for this log entry.
     pub id: String,
-    /// `"ai_call"` or `"credential_access"`.
     pub entry_type: String,
-    // AI-call fields
     pub intent: Option<String>,
     pub tier_used: Option<String>,
     pub provider_name: Option<String>,
     pub latency_ms: Option<i64>,
     pub tokens_used: Option<i64>,
     pub success: Option<bool>,
-    // Credential-access fields
     pub credential_service: Option<String>,
     pub credential_key: Option<String>,
     pub access_type: Option<String>,
-    // Common
     pub created_at: String,
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Writers
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Logs a completed AI provider call.
-///
-/// # Arguments
-/// * `intent`        – The user's original intent string.
-/// * `tier_used`     – Tier that handled the request (`"Local"`, `"Freemium"`, `"Premium"`).
-/// * `provider_name` – Name of the specific provider (e.g. `"Ollama"`).
-/// * `latency_ms`    – Round-trip time in milliseconds.
-/// * `tokens_used`   – Token count returned by the provider, if available.
-/// * `success`       – Whether the call returned a successful response.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn log_ai_call(
     db: &AppDb,
     intent: &str,
@@ -86,17 +50,6 @@ pub async fn log_ai_call(
     Ok(())
 }
 
-/// Logs a credential access event (read / write / delete).
-///
-/// **Never pass the credential value** — only its key name.
-///
-/// # Arguments
-/// * `credential_service` – The keychain service name (e.g. `"cntrl-browser"`).
-/// * `credential_key`     – The key identifier (e.g. `"openrouter_api_key"`).
-/// * `access_type`        – One of `"read"`, `"write"`, or `"delete"`.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn log_credential_access(
     db: &AppDb,
     credential_service: &str,
@@ -121,17 +74,6 @@ pub async fn log_credential_access(
     Ok(())
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Readers
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Returns recent audit log entries, most recent first.
-///
-/// # Arguments
-/// * `limit` – Maximum number of entries to return.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn get_recent_entries(db: &AppDb, limit: u32) -> Result<Vec<AuditEntry>, CntrlError> {
     use sqlx::Row;
     let rows = sqlx::query(
@@ -168,20 +110,12 @@ pub async fn get_recent_entries(db: &AppDb, limit: u32) -> Result<Vec<AuditEntry
     Ok(entries)
 }
 
-/// Returns the total number of entries in the audit log.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn count_entries(db: &AppDb) -> Result<i64, CntrlError> {
     let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM audit_log")
         .fetch_one(db)
         .await?;
     Ok(row.0)
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tests
-// ─────────────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -235,7 +169,6 @@ mod tests {
             Some("openrouter_api_key")
         );
         assert_eq!(entries[0].access_type.as_deref(), Some("read"));
-        // Verify no AI fields were accidentally populated
         assert!(entries[0].intent.is_none());
     }
 
@@ -243,18 +176,13 @@ mod tests {
     async fn audit_log_contains_no_plaintext_secrets() {
         let db = open_in_memory().await.expect("DB must open");
 
-        // Log a credential access (correctly — no value stored)
         log_credential_access(&db, "cntrl-browser", "gemini_api_key", "write")
             .await
             .unwrap();
 
-        // Dump the entire audit_log as raw text and verify no secret-like
-        // string appears. In a real audit we'd also grep the SQLite file on disk.
         let entries = get_recent_entries(&db, 100).await.unwrap();
         for entry in &entries {
             let json = serde_json::to_string(entry).expect("must serialize");
-            // A real API key starts with "AIza..." or "sk-..."; these patterns
-            // must never appear in the audit log.
             assert!(
                 !json.contains("AIza"),
                 "audit log must not contain Gemini API key"

@@ -1,17 +1,3 @@
-//! Recall engine — finds relevant past tasks for a given intent.
-//!
-//! **Primary path** (when Ollama is running):
-//! 1. Call the local `nomic-embed-text` Ollama model to get a 768-dim embedding
-//!    for the current intent.
-//! 2. Store new task embeddings in a LanceDB table (app-data dir).
-//! 3. Query the LanceDB ANN index for semantically similar past tasks.
-//!
-//! **Fallback path** (when Ollama / LanceDB is unavailable):
-//! Falls back to a keyword-based SQLite search using `LIKE` clauses.
-//!
-//! The fallback design means the recall subsystem is never a hard dependency —
-//! callers are never blocked by embedding model failures.
-
 use std::sync::Arc;
 use std::sync::OnceLock;
 
@@ -26,30 +12,13 @@ use lancedb::query::{ExecutableQuery, QueryBase};
 use super::db::AppDb;
 use crate::error::CntrlError;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Dimension of the `nomic-embed-text` embedding model.
 const EMBED_DIM: i32 = 768;
-/// LanceDB table name for task embeddings.
 const LANCE_TABLE: &str = "task_vectors";
-/// Local Ollama embeddings endpoint.
 const OLLAMA_EMBED_URL: &str = "http://localhost:11434/api/embeddings";
-/// Ollama model used for embeddings.
 const EMBED_MODEL: &str = "nomic-embed-text";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Global LanceDB connection
-// ─────────────────────────────────────────────────────────────────────────────
 
 static LANCE_DB: OnceLock<lancedb::Connection> = OnceLock::new();
 
-/// Initialises the LanceDB connection in the background.
-///
-/// Must be called once during application setup (after `app_data_dir` is
-/// known). Failures are logged but never propagate — the recall engine
-/// gracefully falls back to SQLite when LanceDB is unavailable.
 pub fn init_lance_db(data_dir: &str) {
     let path = format!("{data_dir}/lancedb");
     tauri::async_runtime::spawn(async move {
@@ -65,35 +34,19 @@ pub fn init_lance_db(data_dir: &str) {
     });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Public types
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// A past task entry returned by the recall engine.
 #[derive(Debug, Clone)]
 pub struct MemoryEntry {
-    /// The original user input for the recalled task.
     pub intent_raw: String,
-    /// Intent classification (e.g. `"navigate"`).
     pub intent_type: String,
-    /// Final outcome text or error message.
     pub result: Option<String>,
-    /// ISO-8601 timestamp of when the task ran.
     pub created_at: String,
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Ollama embedding helper
-// ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(serde::Deserialize)]
 struct OllamaEmbedResponse {
     embedding: Vec<f32>,
 }
 
-/// Requests a 768-dim embedding from the local Ollama `nomic-embed-text` model.
-///
-/// Returns `None` on any network or model error (Ollama may not be running).
 async fn get_embedding(text: &str) -> Option<Vec<f32>> {
     let client = reqwest::Client::new();
     let resp = client
@@ -115,11 +68,6 @@ async fn get_embedding(text: &str) -> Option<Vec<f32>> {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LanceDB helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Returns the Arrow schema for the task-vector LanceDB table.
 fn task_schema() -> Arc<Schema> {
     Arc::new(Schema::new(vec![
         Field::new("id", DataType::Utf8, false),
@@ -138,13 +86,11 @@ fn task_schema() -> Arc<Schema> {
     ]))
 }
 
-/// Pads or truncates a float vector to exactly `EMBED_DIM` elements.
 fn pad_to_dim(mut v: Vec<f32>) -> Vec<f32> {
     v.resize(EMBED_DIM as usize, 0.0);
     v
 }
 
-/// Builds a single-row Arrow [`RecordBatch`] for a task.
 fn make_batch(
     schema: Arc<Schema>,
     id: &str,
@@ -171,8 +117,6 @@ fn make_batch(
     )
 }
 
-/// Upserts a task embedding into the LanceDB table, creating the table on
-/// first use.
 async fn upsert_to_lancedb(
     conn: &lancedb::Connection,
     id: &str,
@@ -193,13 +137,9 @@ async fn upsert_to_lancedb(
         embedding,
     )?;
 
-    // LanceDB requires Box<dyn lancedb::arrow::arrow_array::RecordBatchReader + Send>.
-    // We must transmute through the trait object pointer so the crate versions
-    // match exactly what LanceDB's `Scannable` impl expects.
     let make_reader = |b: RecordBatch| -> Box<dyn LanceRecordBatchReader + Send> {
         let schema = b.schema();
         let iter = vec![Ok(b)].into_iter();
-        // RecordBatchIterator implements RecordBatchReader.
         Box::new(RecordBatchIterator::new(iter, schema))
     };
 
@@ -208,7 +148,6 @@ async fn upsert_to_lancedb(
             tbl.add(make_reader(batch)).execute().await?;
         }
         Err(_) => {
-            // Table doesn't exist yet — create it with this first record.
             conn.create_table(LANCE_TABLE, make_reader(batch))
                 .execute()
                 .await?;
@@ -217,7 +156,6 @@ async fn upsert_to_lancedb(
     Ok(())
 }
 
-/// Queries the LanceDB ANN index for up to `limit` semantically similar tasks.
 async fn search_lancedb(
     conn: &lancedb::Connection,
     query_vec: Vec<f32>,
@@ -226,7 +164,6 @@ async fn search_lancedb(
     let tbl = conn.open_table(LANCE_TABLE).execute().await?;
     let padded = pad_to_dim(query_vec);
 
-    // `nearest_to` accepts `&[f32]` directly.
     let mut stream = tbl
         .query()
         .nearest_to(padded.as_slice())?
@@ -268,21 +205,6 @@ async fn search_lancedb(
     Ok(entries)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Public API
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Finds past tasks relevant to `intent`.
-///
-/// **Strategy**:
-/// 1. Try Ollama → LanceDB vector search (semantic).
-/// 2. Fall back to SQLite keyword search when Ollama or LanceDB is unavailable.
-///
-/// Returns up to `limit` results, most recent first. Never propagates errors
-/// so callers are not blocked by recall subsystem failures.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure when using the fallback.
 pub async fn find_relevant_context(
     db: &AppDb,
     intent: &str,
@@ -292,12 +214,11 @@ pub async fn find_relevant_context(
         return Ok(vec![]);
     }
 
-    // ── Primary path: LanceDB vector search ──────────────────────────────────
     if let Some(conn) = LANCE_DB.get() {
         if let Some(embedding) = get_embedding(intent).await {
             match search_lancedb(conn, embedding, limit as usize).await {
                 Ok(entries) if !entries.is_empty() => return Ok(entries),
-                Ok(_) => {} // empty result — fall through to SQLite
+                Ok(_) => {}
                 Err(e) => {
                     eprintln!("[recall] LanceDB search failed, falling back to SQLite: {e}");
                 }
@@ -305,15 +226,9 @@ pub async fn find_relevant_context(
         }
     }
 
-    // ── Fallback: SQLite keyword search ───────────────────────────────────────
     sqlite_keyword_search(db, intent, limit).await
 }
 
-/// Saves a completed task to `task_history` and asynchronously indexes it in
-/// LanceDB when an embedding is available.
-///
-/// # Errors
-/// Returns [`CntrlError::Database`] on SQL failure.
 pub async fn save_task(
     db: &AppDb,
     id: &str,
@@ -340,7 +255,6 @@ pub async fn save_task(
     .execute(db)
     .await?;
 
-    // ── Async LanceDB indexing (fire-and-forget, only for completed tasks) ──
     if status == "done" {
         let id = id.to_string();
         let intent_raw = intent_raw.to_string();
@@ -372,12 +286,6 @@ pub async fn save_task(
     Ok(())
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SQLite keyword fallback
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Finds past tasks whose `intent_raw` contains any significant token from
-/// `intent` via SQL `LIKE` clauses.
 async fn sqlite_keyword_search(
     db: &AppDb,
     intent: &str,
@@ -421,10 +329,6 @@ async fn sqlite_keyword_search(
         )
         .collect())
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tests
-// ─────────────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -502,8 +406,6 @@ mod tests {
         assert!(results.len() <= 3, "recall must respect the limit");
     }
 
-    /// Verifies that the SQLite fallback path works correctly when LanceDB is
-    /// unavailable (which is the case in unit tests).
     #[tokio::test]
     async fn sqlite_fallback_matches_keywords() {
         let db = open_in_memory().await.expect("DB must open");
@@ -516,7 +418,6 @@ mod tests {
         )
         .await;
 
-        // LanceDB is not initialised in unit tests → falls through to SQLite.
         let results = sqlite_keyword_search(&db, "bitcoin price", 10)
             .await
             .expect("fallback must succeed");

@@ -1,7 +1,6 @@
 use super::intent::{IntentResult, IntentType};
 use serde::{Deserialize, Serialize};
 
-/// Represents a discrete action emitted by the planner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Step {
     Navigate { url: String },
@@ -13,7 +12,6 @@ pub enum Step {
 pub struct Planner;
 
 impl Planner {
-    /// Takes an IntentResult and produces an ordered execution plan (sequence of Steps).
     pub fn plan(intent: IntentResult) -> Vec<Step> {
         let mut steps = Vec::new();
 
@@ -81,15 +79,8 @@ impl Planner {
         steps
     }
 
-    /// Produces an execution plan just like [`plan`], but for `AiQuery` steps
-    /// replaces the prompt with `decorated_prompt` — which may contain
-    /// recalled context prepended by the intent pipeline.
-    ///
-    /// For all other step types the decorated prompt is ignored because
-    /// navigation, search, and system commands do not require AI context.
     pub fn plan_with_context(intent: IntentResult, decorated_prompt: &str) -> Vec<Step> {
         let mut steps = Self::plan(intent);
-        // Swap in the decorated prompt for every AiQuery step.
         for step in &mut steps {
             if let Step::AiQuery { prompt } = step {
                 *prompt = decorated_prompt.to_string();

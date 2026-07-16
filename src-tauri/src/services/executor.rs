@@ -10,7 +10,7 @@ use tauri::{AppHandle, Emitter, State};
 pub struct StepStatusEvent {
     pub step_index: usize,
     pub total_steps: usize,
-    pub status: String, // "Pending", "Running", "Done", "Failed"
+    pub status: String,
     pub result_markdown: Option<String>,
 }
 
@@ -29,7 +29,6 @@ impl Executor {
         let mut final_output = String::new();
 
         for (i, step) in plan.into_iter().enumerate() {
-            // Emit Running
             let _ = app_handle.emit(
                 "intent://step-status",
                 StepStatusEvent {
@@ -42,7 +41,6 @@ impl Executor {
 
             let result = match step {
                 Step::Navigate { url } => {
-                    // Prepend https:// if not present
                     let final_url = if url.starts_with("http://")
                         || url.starts_with("https://")
                         || url.starts_with("cntrl://")
@@ -137,7 +135,6 @@ impl Executor {
                 }
             }
             "screenshot" => {
-                // Takes a screenshot interactively (MacOS)
                 let output = Command::new("screencapture").arg("-i").arg("-c").output();
                 match output {
                     Ok(_) => Ok("Screenshot taken and copied to clipboard.".to_string()),
@@ -145,7 +142,6 @@ impl Executor {
                 }
             }
             "mute" => {
-                // Mutes volume on MacOS
                 let output = Command::new("osascript")
                     .arg("-e")
                     .arg("set volume with output muted")

@@ -529,7 +529,6 @@
   }
 }
 
-/* ── Health grid ────────────────────────────────────────────────────────── */
 .sp-health-grid {
   display: flex;
   flex-direction: column;
@@ -559,7 +558,6 @@
   letter-spacing: 0.05em;
 }
 
-/** 6px status dot per the design spec */
 .status-dot {
   width: 6px;
   height: 6px;
@@ -585,7 +583,6 @@
   50%       { opacity: 0.3; }
 }
 
-/* ── Key fields ─────────────────────────────────────────────────────────── */
 .sp-key-field {
   padding-bottom: 12px;
   border-bottom: 0.5px solid var(--color-border);
@@ -596,7 +593,6 @@
   padding-bottom: 0;
 }
 
-/* ── Danger button ──────────────────────────────────────────────────────── */
 .sp-btn-danger {
   background: transparent;
   border: 0.5px solid var(--color-text-danger);
@@ -613,12 +609,10 @@
   opacity: 0.75;
 }
 
-/* ── Text helpers ───────────────────────────────────────────────────────── */
 .sp-text-success { color: var(--color-text-success); }
 .sp-text-danger  { color: var(--color-text-danger); }
 .sp-text-secondary { color: var(--color-text-secondary); }
 
-/* ── Model columns ──────────────────────────────────────────────────────── */
 .sp-model-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -651,7 +645,6 @@
   white-space: nowrap;
 }
 
-/* ── Privacy Switch Toggle (Phase 5) ────────────────────────────────── */
 .privacy-toggle-row {
   display: flex;
   justify-content: space-between;

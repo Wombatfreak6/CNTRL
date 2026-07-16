@@ -42,7 +42,6 @@ export const CommandBar: Component = () => {
         e.preventDefault();
         setIsOpen(true);
         void checkPrivacyMode();
-        // Focus is handled by an effect or small timeout because of the DOM render tick
         setTimeout(() => inputRef?.focus(), 50);
       } else if (e.key === "Escape" && isOpen()) {
         e.preventDefault();
@@ -57,7 +56,6 @@ export const CommandBar: Component = () => {
       const payload = event.payload;
       setSteps((prev) => {
         const newSteps = [...prev];
-        // Ensure array is large enough
         while (newSteps.length <= payload.step_index) {
           newSteps.push({ status: "Pending", result: null });
         }
@@ -85,7 +83,7 @@ export const CommandBar: Component = () => {
     if (!query || isProcessing()) return;
 
     setIsProcessing(true);
-    setSteps([]); // reset previous steps
+    setSteps([]); 
 
     try {
       await invoke("submit_intent", { input: query });

@@ -1,8 +1,3 @@
-//! Tauri command adapters for the memory layer (Phase 5).
-//!
-//! Provides the IPC endpoints for reading/writing settings, managing
-//! privacy mode, displaying habits, and querying the audit log.
-
 use tauri::State;
 
 use crate::services::audit::{count_entries, get_recent_entries, AuditEntry};
@@ -10,7 +5,6 @@ use crate::services::memory::db::AppDb;
 use crate::services::memory::habits::list_habits;
 use crate::services::privacy::PrivacyGuard;
 
-/// Gets a preference value from the database.
 #[tauri::command]
 pub async fn get_preference(key: String, db: State<'_, AppDb>) -> Result<Option<String>, String> {
     let row: Option<(String,)> = sqlx::query_as("SELECT value FROM preferences WHERE key = ?")
@@ -43,7 +37,6 @@ pub async fn set_preference(
     .map_err(|e| e.to_string())
 }
 
-/// Returns whether privacy mode is currently active.
 #[tauri::command]
 pub fn is_privacy_mode_enabled(privacy_guard: State<'_, PrivacyGuard>) -> Result<bool, String> {
     Ok(privacy_guard.is_enabled())
@@ -73,7 +66,6 @@ pub async fn get_recent_audit_log(
         .map_err(|e| e.to_string())
 }
 
-/// Returns the total count of audit log entries.
 #[tauri::command]
 pub async fn get_audit_log_count(db: State<'_, AppDb>) -> Result<i64, String> {
     count_entries(db.inner()).await.map_err(|e| e.to_string())

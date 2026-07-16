@@ -1,13 +1,3 @@
-//! CNTRL Browser — Tauri application entry point.
-//!
-//! This module is responsible for:
-//! - Registering Tauri plugins.
-//! - Initialising and managing application state (services).
-//! - Wiring up the Tauri event system.
-//! - Registering all Tauri commands via the invoke handler.
-//!
-//! No business logic lives here; all logic is in `services/`.
-
 use tauri::{Emitter, Listener, Manager};
 
 pub mod commands;
@@ -27,7 +17,6 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_keyring::init())
         .setup(|app| {
-            // ── Database & Privacy init ───────────────────────────────────
             let app_data = app
                 .path()
                 .app_data_dir()
@@ -48,14 +37,12 @@ pub fn run() {
 
             services::keychain::init_audit_db(db.clone());
 
-            // ── LanceDB init (background, non-blocking) ───────────────────
             let lance_path = app_data.to_string_lossy().to_string();
             services::memory::recall::init_lance_db(&lance_path);
 
             app.manage(db);
             app.manage(privacy_guard);
 
-            // ── Browser service ────────────────────────────────────────────
             let browser_service = BrowserService::new();
             app.manage(browser_service);
 
@@ -70,21 +57,16 @@ pub fn run() {
             );
             app.manage(background_runtime);
 
-            // ── AI Router ─────────────────────────────────────────────────
-            // The router is constructed with sensible defaults. Users configure
-            // providers via the Settings UI; keys are stored/retrieved from the
-            // OS keychain — never from config files.
             let router = Router::new(
-                "http://localhost:11434",              // ollama_url
-                "llama3",                              // ollama_model
-                "meta-llama/llama-3-8b-instruct:free", // openrouter model
-                "mistralai/Mistral-7B-Instruct-v0.2",  // hf model
-                None,                                  // compat endpoint (user-configured)
-                None,                                  // compat model
+                "http://localhost:11434",
+                "llama3",
+                "meta-llama/llama-3-8b-instruct:free",
+                "mistralai/Mistral-7B-Instruct-v0.2",
+                None,
+                None,
             );
             app.manage(router);
 
-            // ── Tab metadata listener ──────────────────────────────────────
             let browser_service_ref = app.state::<BrowserService>();
             let handle = app.handle().clone();
             let browser_clone = browser_service_ref.inner().clone();
@@ -109,7 +91,6 @@ pub fn run() {
                 }
             });
 
-            // ── Window close → Cmd+W event ────────────────────────────────
             let main_window = app
                 .get_webview_window("main")
                 .expect("main window not found");
@@ -124,7 +105,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            // Browser commands
             commands::browser::open_tab,
             commands::browser::close_tab,
             commands::browser::navigate,
@@ -137,7 +117,6 @@ pub fn run() {
             commands::browser::reload,
             commands::browser::get_browser_config,
             commands::browser::update_browser_config,
-            // AI commands
             commands::ai::ask_ai,
             commands::ai::store_api_key,
             commands::ai::get_api_key_status,
@@ -148,9 +127,7 @@ pub fn run() {
             commands::ai::get_openrouter_free_models,
             commands::ai::test_intent_router,
             commands::background::spawn_background_task,
-            // Intent commands
             commands::intent::submit_intent,
-            // Memory commands (Phase 5)
             commands::memory::get_preference,
             commands::memory::set_preference,
             commands::memory::is_privacy_mode_enabled,
@@ -165,7 +142,6 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    /// Smoke test — verifies the binary links correctly.
     #[test]
     fn smoke_test() {
         assert_eq!(2 + 2, 4);
