@@ -2,12 +2,13 @@
 
 use std::sync::Arc;
 use tauri::{AppHandle, State};
+use tauri_plugin_notification::NotificationExt;
 
 use crate::services::agent::{run_macro, DbHandle};
 use crate::services::ai::router::Router;
 use crate::services::browser::BrowserService;
 use crate::services::macro_dir;
-use crate::services::macro_format::{MacroStep, MacroTrigger, Vibemacro};
+use crate::services::macro_format::{MacroTrigger, Vibemacro};
 use crate::services::memory::db::AppDb;
 use crate::services::privacy::PrivacyGuard;
 use crate::services::recorder::Recorder;
@@ -147,7 +148,7 @@ pub async fn schedule_macro(
     let privacy_clone = privacy.inner().clone();
     let db_clone: DbHandle = db.inner().clone();
     let app_clone = app_handle.clone();
-    let macro_id_clone = macro_id.clone();
+
     let app_notify = app_handle.clone();
 
     let job_uuid = scheduler

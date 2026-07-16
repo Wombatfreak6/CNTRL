@@ -53,6 +53,7 @@ tauri-plugin-notification = "2"
 dirs = "5"
 # WASM sandbox for plugin isolation (Phase 7)
 wasmtime = { version = "25", default-features = false, features = ["async", "cranelift"] }
+zip = "8.6.0"
 
 [dev-dependencies]
 # Enables mocking in unit tests for provider HTTP calls

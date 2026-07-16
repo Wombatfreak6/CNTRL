@@ -4,10 +4,10 @@
 // Tests the round-trip (record -> save -> load -> replay), scheduler firing,
 // and gracefully handling failure paths.
 
-use cntrl::services::macro_format::{MacroStep, Vibemacro};
-use cntrl::services::macro_dir;
-use cntrl::services::recorder::Recorder;
-use cntrl::services::scheduler::MacroScheduler;
+use cntrl_browser_lib::services::macro_format::{MacroStep, Vibemacro};
+use cntrl_browser_lib::services::macro_dir;
+use cntrl_browser_lib::services::recorder::Recorder;
+use cntrl_browser_lib::services::scheduler::MacroScheduler;
 use std::time::Duration;
 use tokio::time::sleep;
 use uuid::Uuid;
@@ -40,15 +40,15 @@ async fn test_macro_round_trip() {
 
 #[tokio::test]
 async fn test_scheduler_firing() {
-    let scheduler = MacroScheduler::new().await;
+    let scheduler = MacroScheduler::new().await.unwrap();
     let macro_id = Uuid::new_v4().to_string();
     
     use std::sync::{Arc, Mutex};
     let fired = Arc::new(Mutex::new(false));
     let fired_clone = fired.clone();
     
-    // Schedule to run every second (* * * * * * for tokio-cron-scheduler)
-    scheduler.schedule(macro_id.clone(), "* * * * * * *", move |mid| {
+    // Schedule to run every second (1/1 * * * * * for tokio-cron-scheduler)
+    scheduler.schedule(macro_id.clone(), "1/1 * * * * *", move |mid| {
         *fired_clone.lock().unwrap() = true;
     }).await.unwrap();
     
